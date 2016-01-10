@@ -6,26 +6,33 @@
     </head>
     <body>
         <?php
-        if (!isset($_GET['board'])) {
-            echo "no input";
-        } else {
-            $squares = $_GET['board'];
+        $game = new Game();
+        if (isset($_GET['board'])) {
+            $squares = $GET['board'];
+            $game->parse($squares);
         }
-        $game = new Game($squares);
-        $game->display();
         if ($game->winner('x')) {
             echo "You win. Lucky guesses!";
         } else if ($game->winner('o')) {
             echo "I win. Muahahahaha";
         } else {
-            echo "No winner yet, but you are losing.";
+            $squares = $game->pick_move();
+            $game->parse($squares);
+            if ($game->winner('x')) {
+                echo "I win. Muahahahaha";
+            }
         }
+        $game->display();
 
         class Game {
 
             var $position;
 
-            function __construct($squares) {
+            function __construct() {
+                $this->position = str_split('---------');
+            }
+
+            function parse($squares) {
                 $this->position = str_split($squares);
             }
 
@@ -62,15 +69,17 @@
                 }
                 return $result;
             }
+
             function show_cell($which) {
                 $token = $this->position[$which];
-                if ($token <> '­')
+                if ($token <> '-') {
                     return '<td>' . $token . '</td>';
-                $this->newposition = $this­ > position;
+                }
+                $this->newposition = $this->position;
                 $this->newposition[$which] = 'o';
                 $move = implode($this->newposition);
                 $link = '/?board=' . $move;
-                return '<td><a href=”' . $link . '”>­</a></td>';
+                return '<td><a href="' . $link . '">-</a></td>';
             }
 
             function display() {
@@ -78,12 +87,23 @@
                 echo '<tr>'; // open the first row
                 for ($pos = 0; $pos < 9; $pos++) {
                     echo $this->show_cell($pos);
-                    if ($pos % 3 == 2){
+                    if ($pos % 3 == 2) {
                         echo '</tr><tr>';
                     }
                 }
                 echo '</tr>';
                 echo '</table>';
+            }
+
+            function pick_move() {
+                $this->newposition = $this->position;
+                for ($pos = 0; $pos < 9; $pos++) {
+                    if ($this->position[$pos] == '-') {
+                        $this->newposition[$pos] = 'x';
+                        $move = implode($this->newposition);
+                        return $move;
+                    }
+                }
             }
 
         }
